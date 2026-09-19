@@ -1,0 +1,84 @@
+# ============================================================
+# pump.fun 자동매매 봇 전략 설정
+# 예산이 극소액(약 10만원)이라는 전제로 기본값을 보수적으로 잡았습니다.
+# 반드시 본인 예산/위험 허용도에 맞게 조정하세요.
+# ============================================================
+
+capital:
+  # 이 봇이 굴릴 총 자본 (SOL 단위). 지갑에 이 금액 이상 넣어두지 마세요.
+  # 10만원을 SOL로 환전한 실제 수량으로 바꿔서 입력하세요.
+  total_sol: 0.35
+
+  # 포지션 1개당 투입 비율 (총 자본 대비). 소액일수록 낮게.
+  position_size_pct: 0.15   # 총자본의 15% ≈ 0.05 SOL 내외
+
+  # 동시 보유 가능한 최대 포지션 수
+  max_concurrent_positions: 2
+
+  # 하루 누적 손실이 총 자본의 이 비율을 넘으면 봇 자동 정지
+  daily_loss_limit_pct: 0.30
+
+screening:
+  # 본딩커브가 완료(그래주에이션)되는 시가총액(SOL). pump.fun 정책 변경 시 바뀔 수 있으니
+  # 실거래 전 pump.fun 공식 자료로 최신값을 꼭 확인하세요. (2026-09 기준 통상 ~85 SOL)
+  graduation_market_cap_sol: 85
+
+  # 본딩커브 진행률(%) 허용 범위 — 너무 이른 건 러그풀 위험, 너무 늦은 건 이미 상승분 소진
+  min_bonding_curve_progress_pct: 3
+  max_bonding_curve_progress_pct: 35
+
+  # 신규 토큰 최소/최대 시가총액 (SOL 환산)
+  min_market_cap_sol: 5
+  max_market_cap_sol: 60
+
+  # 토큰 생성 후 몇 초 이내여야 매수 후보로 고려할지
+  max_token_age_seconds: 120
+
+  # 초기 매수자(고유 지갑) 최소 수
+  min_unique_buyers: 5
+
+  # 단일 지갑이 유통량의 이 비율 이상 보유하면 제외 (매집/조작 위험)
+  max_single_holder_pct: 25
+
+  # 개발자(생성자) 지갑 보유 비율이 이 비율을 넘으면 제외
+  max_dev_holding_pct: 15
+
+  # 블랙리스트에 있는 생성자 지갑은 자동 제외 (과거 러그풀 등 수동 기록)
+  dev_blacklist_file: "./data/dev_blacklist.json"
+
+buy:
+  slippage_pct: 15
+  priority_fee_sol: 0.0005
+  # 매수 트랜잭션이 이 시간(ms) 안에 확정되지 않으면 포기
+  timeout_ms: 15000
+
+sell:
+  # 단계별 분할 익절: [수익률(%), 매도비율(%)]
+  take_profit_ladder:
+    - { gain_pct: 50, sell_pct: 50 }
+    - { gain_pct: 100, sell_pct: 30 }
+    - { gain_pct: 200, sell_pct: 20 }
+
+  stop_loss_pct: -20
+
+  # 최고점 대비 이 비율만큼 하락하면 트레일링 스탑으로 잔여 물량 전량 매도
+  trailing_stop_pct: -15
+
+  # 진입 후 이 시간(초) 동안 목표 수익률에 도달하지 못하면 강제 청산
+  max_hold_seconds: 900
+
+  slippage_pct: 20
+  priority_fee_sol: 0.0007
+
+monitor:
+  # PumpPortal WebSocket 데이터 스트림
+  websocket_url: "wss://pumpportal.fun/api/data"
+
+trading_api:
+  # 비수탁형(내 키로 직접 서명) Local Trading API
+  local_trade_url: "https://pumpportal.fun/api/trade-local"
+  pool: "pump"
+
+notifications:
+  enabled: true
+  notify_on: ["buy", "sell", "error", "daily_summary", "kill_switch"]
